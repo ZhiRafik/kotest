@@ -15,18 +15,15 @@ class UserService(
 ) {
 
     fun register(request: RegisterRequest): User {
-        // Проверяем, существует ли пользователь
         if (userRepository.existsByUsername(request.username)) {
             throw IllegalArgumentException("Username '${request.username}' already exists")
         }
 
-        // Определяем роль
         val role = when (request.role?.uppercase()) {
             "TEACHER" -> UserRole.TEACHER
             else -> UserRole.STUDENT
         }
 
-        // Создаем пользователя с зашифрованным паролем
         val user = User(
             username = request.username,
             password = passwordEncoder.encode(request.password),

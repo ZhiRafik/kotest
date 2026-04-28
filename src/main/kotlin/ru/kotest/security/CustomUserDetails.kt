@@ -1,15 +1,17 @@
-package ru.kotest.service
+package ru.kotest.security
 
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 import ru.kotest.model.User
+import ru.kotest.model.UserRole
 
-class CustomerUserDetails (
+class CustomUserDetails (
     val user: User
 ) : UserDetails {
 
     val id: Long get() = user.id
+    val role: UserRole get() = user.role
 
     override fun getPassword(): String = user.password
     override fun getUsername(): String = user.username
