@@ -82,12 +82,6 @@
             <version>2.6.0</version>
         </dependency>
 
-        <!-- Migration -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-        </dependency>
-
         <!-- Mapping -->
         <dependency>
             <groupId>org.mapstruct</groupId>

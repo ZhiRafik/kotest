@@ -7,9 +7,4 @@ import ru.kotest.model.Test
 
 @Repository
 interface QuestionRepository : JpaRepository<Question, Long> {
-    fun findByTest(test: Test): List<Question>
-    fun findByTestId(testId: Long): List<Question>
-    fun deleteByTestId(testId: Long)
-    fun findByTestAndType(test: Test, type: String): List<Question>
-
 }

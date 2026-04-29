@@ -8,5 +8,4 @@ import ru.kotest.model.User
 @Repository
 interface TestRepository : JpaRepository<Test, Long> {
     fun findByTeacher(teacher: User): List<Test>
-    fun findAllByOrderByCreatedAtDesc(): List<Test>
 }
