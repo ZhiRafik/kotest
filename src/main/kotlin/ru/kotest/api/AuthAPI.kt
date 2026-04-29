@@ -6,9 +6,9 @@ import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.annotation.*
-import ru.kotest.dto.AuthResponse
-import ru.kotest.dto.LoginRequest
-import ru.kotest.dto.RegisterRequest
+import ru.kotest.dto.response.AuthResponse
+import ru.kotest.dto.request.LoginRequest
+import ru.kotest.dto.request.RegisterRequest
 
 @Tag(name = "Authentication", description = "Регистрация, логин, выход из системы")
 @RequestMapping("/auth")

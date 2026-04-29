@@ -1,4 +1,4 @@
-package ru.kotest.dto
+package ru.kotest.dto.response
 
 import ru.kotest.model.UserRole
 

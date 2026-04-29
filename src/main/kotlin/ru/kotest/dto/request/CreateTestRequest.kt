@@ -1,6 +1,6 @@
-package ru.kotest.dto
+package ru.kotest.dto.request
 
-data class TestCreateDto(
+data class CreateTestRequest(
     val title: String,
     val description: String,
     val durationMinutes: Int

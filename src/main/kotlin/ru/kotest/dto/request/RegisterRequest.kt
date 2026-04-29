@@ -1,4 +1,4 @@
-package ru.kotest.dto
+package ru.kotest.dto.request
 
 data class RegisterRequest (
     val username: String,

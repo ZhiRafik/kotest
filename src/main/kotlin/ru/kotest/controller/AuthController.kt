@@ -9,9 +9,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 import org.springframework.web.bind.annotation.*
 import ru.kotest.api.AuthAPI
-import ru.kotest.dto.AuthResponse
-import ru.kotest.dto.LoginRequest
-import ru.kotest.dto.RegisterRequest
+import ru.kotest.dto.response.AuthResponse
+import ru.kotest.dto.request.LoginRequest
+import ru.kotest.dto.request.RegisterRequest
 import ru.kotest.security.CustomUserDetails
 import ru.kotest.service.UserService
 

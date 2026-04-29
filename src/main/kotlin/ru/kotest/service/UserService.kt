@@ -3,7 +3,7 @@ package ru.kotest.service
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import ru.kotest.dto.RegisterRequest
+import ru.kotest.dto.request.RegisterRequest
 import ru.kotest.model.User
 import ru.kotest.model.UserRole
 import ru.kotest.repository.UserRepository
