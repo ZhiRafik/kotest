@@ -3,19 +3,22 @@ package ru.kotest.model
 import jakarta.persistence.*
 
 @Entity
-data class SingleChoiceQuestion(
-    override val id: Long = 0,
-
-    override val text: String,
-
-    override val points: Int,
-
-    @ManyToOne
-    override val test: Test,
+@DiscriminatorValue("SINGLE")
+class SingleChoiceQuestion(
+    id: Long = 0,
+    text: String,
+    points: Int,
+    test: Test,
 
     @ElementCollection
     @OrderColumn
-    val options: List<String>,
+    var options: List<String>,
 
-    val correctAnswer: String
-) : Question(id, text, points, test)
+    var correctAnswer: String
+) : Question(id, text, points, test) {
+
+    // Переопределяем toString вручную, чтобы безопасно логировать
+    override fun toString(): String {
+        return "SingleChoiceQuestion(id=$id, text='$text', points=$points, options=$options)"
+    }
+}

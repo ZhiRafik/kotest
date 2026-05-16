@@ -1,5 +1,6 @@
 package ru.kotest.service
 
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import ru.kotest.dto.SubmitAttemptDto
@@ -24,9 +25,11 @@ class TestTakingService(
     private val attemptMapper: AttemptMapper
 ) {
 
+    private val log = LoggerFactory.getLogger(javaClass)
     private val formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
     fun getAvailableTests(): List<TestResponse> {
+        log.debug("Fetching available tests")
         val tests = testRepository.findAll()
         return tests.map { test ->
             testMapper.toResponse(test, includeQuestions = false)
@@ -35,17 +38,24 @@ class TestTakingService(
 
     @Transactional
     fun startAttempt(testId: Long, student: User): AttemptDetailResponse {
-        val test = testRepository.findById(testId)
-            .orElseThrow { IllegalArgumentException("Test not found") }
+        log.info("=== START ATTEMPT ===")
+        log.info("testId={}, studentId={}", testId, student.id)
 
-        // Проверяем, нет ли уже незавершенной попытки
+        val test = testRepository.findByIdWithQuestions(testId)
+            ?: throw IllegalArgumentException("Test not found")
+
+        log.info("Test loaded: id={}, title={}", test.id, test.title)
+        log.info("Test.questions size BEFORE access: {}", test.questions.size)  //  это может упасть
+        log.info("Ne ypal")
+
         val existingAttempt = attemptRepository.findByStudentAndTestAndSubmittedFalse(student, test)
         if (existingAttempt != null) {
+            log.info("Existing attempt found, returning it")
             return buildAttemptDetailResponse(existingAttempt, test)
         }
 
+        log.info("No existing attempt, creating new one")
         val startedAt = LocalDateTime.now()
-
         val attempt = Attempt(
             student = student,
             test = test,
@@ -55,10 +65,13 @@ class TestTakingService(
         )
 
         val savedAttempt = attemptRepository.save(attempt)
+        log.info("New attempt created: id={}", savedAttempt.id)
         return buildAttemptDetailResponse(savedAttempt, test)
     }
 
     private fun buildAttemptDetailResponse(attempt: Attempt, test: Test): AttemptDetailResponse {
+        log.debug("Building attempt detail response for attemptId={}, testId={}", attempt.id, test.id)
+
         val now = LocalDateTime.now()
         val expiresAt = attempt.startedAt.plusMinutes(test.durationMinutes.toLong())
         val remainingSeconds = if (now.isBefore(expiresAt)) {
@@ -68,16 +81,34 @@ class TestTakingService(
         }
 
         // Перемешиваем вопросы и варианты ответов (случайная генерация)
-        val shuffledQuestions = test.questions.shuffled().map { question ->
+        val shuffledQuestions = test.questions.shuffled().mapNotNull { question ->
+            log.debug("Processing question id={}, type={}, text='{}'",
+                question.id, question::class.simpleName, question.text)
+
             when (question) {
-                is SingleChoiceQuestion -> testMapper.toSingleChoiceResponse(question).copy(
-                    options = question.options.shuffled()
-                )
-                is MultipleChoiceQuestion -> testMapper.toMultipleChoiceResponse(question).copy(
-                    options = question.options.shuffled()
-                )
-                is TextQuestion -> testMapper.toTextResponse(question)
-                else -> throw IllegalArgumentException("Unknown question type")
+                is SingleChoiceQuestion -> {
+                    log.debug("SingleChoice: id={}, text='{}', options={}, correctAnswer={}",
+                        question.id, question.text, question.options, question.correctAnswer)
+                    testMapper.toSingleChoiceResponse(question).copy(
+                        options = question.options.shuffled()
+                    )
+                }
+                is MultipleChoiceQuestion -> {
+                    log.debug("MultipleChoice: id={}, text='{}', options={}, correctAnswers={}",
+                        question.id, question.text, question.options, question.correctAnswers)
+                    testMapper.toMultipleChoiceResponse(question).copy(
+                        options = question.options.shuffled()
+                    )
+                }
+                is TextQuestion -> {
+                    log.debug("Text: id={}, text='{}', correctAnswer={}",
+                        question.id, question.text, question.correctAnswer)
+                    testMapper.toTextResponse(question)
+                }
+                else -> {
+                    log.error("Unknown question type: {}", question::class.simpleName)
+                    throw IllegalArgumentException("Unknown question type")
+                }
             }
         }
 
@@ -91,16 +122,21 @@ class TestTakingService(
 
     @Transactional
     fun submitAttempt(attemptId: Long, request: SubmitAttemptDto, student: User): ResultResponse {
+        log.info("Submitting attemptId={} for studentId={}", attemptId, student.id)
+
         val attempt = attemptRepository.findById(attemptId)
             .orElseThrow { IllegalArgumentException("Attempt not found") }
 
         // Проверка: попытка принадлежит студенту
         if (attempt.student.id != student.id) {
+            log.warn("StudentId={} tried to submit attemptId={} belonging to studentId={}",
+                student.id, attemptId, attempt.student.id)
             throw SecurityException("Cannot submit another student's attempt")
         }
 
         // Проверка: попытка уже не отправлена
         if (attempt.submitted) {
+            log.warn("AttemptId={} already submitted by studentId={}", attemptId, student.id)
             throw IllegalStateException("Attempt already submitted")
         }
 
@@ -110,6 +146,7 @@ class TestTakingService(
         val now = LocalDateTime.now()
 
         if (now.isAfter(expiresAt)) {
+            log.warn("AttemptId={} submitted after time limit. Expired at {}, now={}", attemptId, expiresAt, now)
             throw IllegalStateException("Time limit exceeded")
         }
 
@@ -142,10 +179,14 @@ class TestTakingService(
 
             if (isCorrect) {
                 totalScore += question.points
+                log.debug("QuestionId={} answered correctly (+{} points)", question.id, question.points)
+            } else {
+                log.debug("QuestionId={} answered incorrectly", question.id)
             }
         }
 
         val percentage = if (maxScore > 0) (totalScore.toDouble() / maxScore) * 100 else 0.0
+        log.info("AttemptId={} scored {} / {} ({}%)", attemptId, totalScore, maxScore, percentage)
 
         // Сохраняем результат
         val result = Result(

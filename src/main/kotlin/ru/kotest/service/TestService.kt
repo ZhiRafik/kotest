@@ -127,13 +127,15 @@ class TestService(
             throw SecurityException("You don't have permission to update this question")
         }
 
-        val updatedQuestion = question.copy(
-            text = request.text,
-            points = request.points,
-            options = request.options,
-            correctAnswer = request.correctAnswer
-        )
-        val savedQuestion = questionRepository.save(updatedQuestion)
+        // Напрямую меняем свойства существующего объекта
+        question.text = request.text
+        question.points = request.points
+        question.options = request.options
+        question.correctAnswer = request.correctAnswer
+
+        // В Hibernate измененный объект автоматически сохранится
+        // при закрытии транзакции (@Transactional), но для явности вызываем save:
+        val savedQuestion = questionRepository.save(question)
         return testMapper.toSingleChoiceResponse(savedQuestion)
     }
 
@@ -146,13 +148,14 @@ class TestService(
             throw SecurityException("You don't have permission to update this question")
         }
 
-        val updatedQuestion = question.copy(
-            text = request.text,
-            points = request.points,
-            options = request.options,
-            correctAnswers = request.correctAnswers
-        )
-        val savedQuestion = questionRepository.save(updatedQuestion)
+        // Напрямую изменяем поля существующего объекта question
+        question.text = request.text
+        question.points = request.points
+        question.options = request.options
+        question.correctAnswers = request.correctAnswers
+
+        // Сохраняем измененный объект
+        val savedQuestion = questionRepository.save(question)
         return testMapper.toMultipleChoiceResponse(savedQuestion)
     }
 
@@ -165,13 +168,15 @@ class TestService(
             throw SecurityException("You don't have permission to update this question")
         }
 
-        val updatedQuestion = question.copy(
-            text = request.text,
-            points = request.points,
-            correctAnswer = request.correctAnswer
-        )
-        val savedQuestion = questionRepository.save(updatedQuestion)
+        // Напрямую изменяем поля существующего объекта question
+        question.text = request.text
+        question.points = request.points
+        question.correctAnswer = request.correctAnswer
+
+        // Сохраняем измененный объект
+        val savedQuestion = questionRepository.save(question)
         return testMapper.toTextResponse(savedQuestion)
+
     }
 
     @Transactional

@@ -25,6 +25,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
+            .csrf { csrf -> csrf.disable() } // for development
             .sessionManagement { session ->
                 session
                     .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)

@@ -3,17 +3,17 @@ package ru.kotest.model
 import jakarta.persistence.*
 
 @Entity
-@Inheritance(strategy = InheritanceType.JOINED)
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE) // или ваша стратегия
+@DiscriminatorColumn(name = "question_type")
 abstract class Question(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     open val id: Long = 0,
 
-    open val text: String,
+    @Column(nullable = false)
+    open var text: String,
 
-    open val points: Int,
+    open var points: Int,
 
     @ManyToOne
-    @JoinColumn(name = "test_id")
     open val test: Test
 )

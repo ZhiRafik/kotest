@@ -1,16 +1,19 @@
 package ru.kotest.model
 
-import jakarta.persistence.*;
+import jakarta.persistence.*
+
 @Entity
-data class TextQuestion(
-    override val id: Long = 0,
+@DiscriminatorValue("TEXT")
+class TextQuestion(
+    id: Long = 0,
+    text: String,
+    points: Int,
+    test: Test,
 
-    override val text: String,
+    var correctAnswer: String
+) : Question(id, text, points, test) {
 
-    override val points: Int,
-
-    @ManyToOne
-    override val test: Test,
-
-    val correctAnswer: String
-) : Question(id, text, points, test)
+    override fun toString(): String {
+        return "TextQuestion(id=$id, text='$text', points=$points)"
+    }
+}
